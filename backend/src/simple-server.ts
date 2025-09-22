@@ -7,6 +7,9 @@ import dotenv from 'dotenv';
 // Load environment variables
 dotenv.config();
 
+// Import and start Telegram bot
+import './telegram-bot';
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -37,6 +40,66 @@ app.get('/health', (req, res) => {
     message: 'Backend is healthy',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
+  });
+});
+
+// Telegram auth endpoints
+const pendingAuth = new Map(); // В реальном приложении используйте Redis
+
+app.get('/api/auth/telegram/check', (req, res) => {
+  const { code } = req.query;
+  
+  if (!code) {
+    return res.json({ success: false, error: 'Missing auth code' });
+  }
+
+  const authData = pendingAuth.get(code);
+  
+  if (authData && authData.token) {
+    // Очищаем использованный код
+    pendingAuth.delete(code);
+    
+    return res.json({
+      success: true,
+      token: authData.token,
+      user: authData.user
+    });
+  } else {
+    return res.json({
+      success: false,
+      message: 'Auth pending'
+    });
+  }
+});
+
+app.post('/api/auth/telegram/confirm', (req, res) => {
+  const { code, userId, username, firstName, lastName } = req.body;
+  
+  if (!code || !userId) {
+    return res.json({ success: false, error: 'Missing required fields' });
+  }
+
+  // Генерируем JWT токен
+  const token = `telegram_jwt_${userId}_${Date.now()}`;
+  
+  // Сохраняем данные авторизации
+  pendingAuth.set(code, {
+    token,
+    user: {
+      id: userId,
+      username,
+      firstName,
+      lastName,
+      platform: 'telegram'
+    },
+    confirmedAt: new Date()
+  });
+
+  console.log(`Telegram auth confirmed for user ${username} (${userId}) with code ${code}`);
+
+  return res.json({
+    success: true,
+    message: 'Authorization confirmed'
   });
 });
 

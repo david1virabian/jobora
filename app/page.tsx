@@ -18,6 +18,7 @@ import {
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { apiClient, type Application, type Message } from "@/lib/api"
+import { TelegramAuth } from "@/components/auth/TelegramAuth"
 
 const StatusBadge = ({ status }: { status: string }) => {
   let bgColor = "#10b981"
@@ -55,6 +56,7 @@ const TelegramButton = () => (
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("overview")
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [stats, setStats] = useState({
     total: 142,
     today: 3,
@@ -87,15 +89,50 @@ export default function Dashboard() {
   ]
 
   useEffect(() => {
+    // Check for OAuth callback parameters in URL
+    const urlParams = new URLSearchParams(window.location.search)
+    const token = urlParams.get('token')
+    const error = urlParams.get('error')
+    const success = urlParams.get('success')
+
+    if (token && success) {
+      // Save token to localStorage
+      localStorage.setItem('auth_token', token)
+      setIsAuthenticated(true)
+      
+      // Clean up URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname)
+      
+      // Load dashboard data
+      loadDashboardData()
+      return
+    }
+
+    if (error) {
+      console.error('OAuth error:', error)
+      // Show error to user (you can add a toast notification here)
+      alert(`Ошибка авторизации: ${decodeURIComponent(error)}`)
+      
+      // Clean up URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname)
+    }
+
+    // Check authentication status on component mount
+    const checkAuth = () => {
+      const storedToken = localStorage.getItem('auth_token')
+      const isAuth = !!storedToken
+      setIsAuthenticated(isAuth)
+      
+      if (isAuth) {
+        loadDashboardData()
+      } else {
+        setLoading(false)
+      }
+    }
+
     const loadDashboardData = async () => {
       try {
         setLoading(true)
-        
-        // Check if user is authenticated
-        if (!apiClient.isAuthenticated()) {
-          // Redirect to login or show auth prompt
-          return
-        }
 
         const [statsResponse, applicationsResponse, messagesResponse] = await Promise.all([
           apiClient.getApplicationStats(),
@@ -121,7 +158,20 @@ export default function Dashboard() {
       }
     }
 
-    loadDashboardData()
+    checkAuth()
+
+    // Listen for authentication changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'auth_token') {
+        checkAuth()
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+    }
   }, [])
 
   const getStatusText = (status: string) => {
@@ -326,6 +376,63 @@ export default function Dashboard() {
     </div>
   )
 
+  const handleTelegramAuth = (token: string) => {
+    localStorage.setItem('auth_token', token)
+    setIsAuthenticated(true)
+    loadDashboardData()
+  }
+
+  const renderAuth = () => (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
+      <div className="text-center mb-8">
+        <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-teal-500 rounded-full flex items-center justify-center shadow-2xl mb-6 mx-auto">
+          <img src="/jobora-logo.jpg" alt="Jobora" className="w-10 h-10" />
+        </div>
+        <h1 className="text-3xl font-bold text-balance bg-gradient-to-r from-purple-600 to-teal-600 bg-clip-text text-transparent mb-4">
+          Добро пожаловать в Jobora!
+        </h1>
+        <p className="text-gray-600 text-balance text-lg mb-2">
+          ИИ-помощник для автоматизации поиска работы
+        </p>
+        <p className="text-gray-500 text-balance mb-8">
+          Войдите через Telegram бот для начала работы
+        </p>
+      </div>
+
+      <div className="w-full max-w-md space-y-4">
+        <Card className="border-2 border-blue-200/50 shadow-xl bg-gradient-to-br from-white to-blue-50/30">
+          <CardContent className="p-6">
+            <TelegramAuth onAuth={handleTelegramAuth} />
+          </CardContent>
+        </Card>
+
+        <Card className="border border-gray-200 shadow-md bg-white">
+          <CardContent className="p-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Что умеет Jobora:</h3>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
+                Автоматический поиск подходящих вакансий на HH.ru
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
+                ИИ-генерация персональных сопроводительных писем
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
+                Полное управление через Telegram-бота
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
+                Отслеживание статуса откликов и ответов
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+
   const renderMessages = () => (
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-4">
@@ -464,9 +571,15 @@ export default function Dashboard() {
       </header>
 
       <main className="p-4 pb-20">
-        {activeTab === "overview" && renderOverview()}
-        {activeTab === "applications" && renderApplications()}
-        {activeTab === "messages" && renderMessages()}
+        {!isAuthenticated ? (
+          renderAuth()
+        ) : (
+          <>
+            {activeTab === "overview" && renderOverview()}
+            {activeTab === "applications" && renderApplications()}
+            {activeTab === "messages" && renderMessages()}
+          </>
+        )}
       </main>
 
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-2xl">
