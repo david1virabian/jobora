@@ -1,0 +1,165 @@
+// SQLite version for quick testing
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  password          String
+  firstName         String?
+  lastName          String?
+  phone             String?
+  telegramUserId    String?  @unique
+  telegramUsername  String?
+  
+  // HH.ru integration
+  hhAccessToken     String?
+  hhRefreshToken    String?
+  hhUserId          String?
+  hhTokenExpiresAt  DateTime?
+  
+  // User preferences
+  preferences       UserPreferences?
+  
+  // Relations
+  applications      Application[]
+  messages          Message[]
+  jobSearches       JobSearch[]
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@map("users")
+}
+
+model UserPreferences {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Job search preferences - stored as JSON text in SQLite
+  desiredSalaryFrom     Int?
+  desiredSalaryTo       Int?
+  desiredPositions      String?  // JSON array as string
+  desiredLocations      String?  // JSON array as string
+  desiredExperience     String?
+  desiredSchedule       String?  // JSON array as string
+  desiredEmployment     String?  // JSON array as string
+  
+  // Auto-application settings
+  autoApplyEnabled      Boolean  @default(false)
+  maxApplicationsPerDay Int      @default(10)
+  coverLetterTemplate   String?
+  
+  // Filters - stored as JSON text
+  excludeCompanies      String?  // JSON array as string
+  excludeKeywords       String?  // JSON array as string
+  includeKeywords       String?  // JSON array as string
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  @@map("user_preferences")
+}
+
+model Application {
+  id                String              @id @default(cuid())
+  userId            String
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // HH.ru data
+  hhVacancyId       String
+  hhApplicationId   String?
+  
+  // Vacancy details
+  vacancyTitle      String
+  companyName       String
+  salaryFrom        Int?
+  salaryTo          Int?
+  salaryCurrency    String?
+  location          String?
+  experience        String?
+  schedule          String?
+  employment        String?
+  description       String?
+  requirements      String?
+  responsibilities  String?
+  
+  // Application details
+  coverLetter       String?
+  status            String              @default("SENT") // ApplicationStatus enum as string
+  appliedAt         DateTime            @default(now())
+  
+  // Response tracking
+  viewedAt          DateTime?
+  respondedAt       DateTime?
+  rejectedAt        DateTime?
+  
+  // Relations
+  messages          Message[]
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@unique([userId, hhVacancyId])
+  @@map("applications")
+}
+
+model Message {
+  id              String      @id @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applicationId   String?
+  application     Application? @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  
+  // Message details
+  fromRecruiter   Boolean     @default(true)
+  recruiterName   String?
+  recruiterEmail  String?
+  subject         String?
+  content         String
+  isRead          Boolean     @default(false)
+  
+  // HH.ru data
+  hhMessageId     String?
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  @@map("messages")
+}
+
+model JobSearch {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Search parameters - stored as JSON text in SQLite
+  searchText        String?
+  area              String?  // JSON array as string
+  experience        String?
+  employment        String?
+  schedule          String?
+  salaryFrom        Int?
+  salaryTo          Int?
+  
+  // Results
+  totalFound        Int      @default(0)
+  processed         Int      @default(0)
+  applied           Int      @default(0)
+  
+  status            String   @default("PENDING") // SearchStatus enum as string
+  startedAt         DateTime @default(now())
+  completedAt       DateTime?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@map("job_searches")
+}
