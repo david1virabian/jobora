@@ -104,14 +104,14 @@ export function StartupCard({ startup, onWatchlistToggle, isWatchlisted = false 
     return `$${volume.toLocaleString()}`
   }
 
-  const handleYesClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
+  const handleYesClick = (e?: React.MouseEvent) => {
+    e?.stopPropagation()
     setForecastType("increase")
     setShowForecastModal(true)
   }
 
-  const handleNoClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
+  const handleNoClick = (e?: React.MouseEvent) => {
+    e?.stopPropagation()
     setForecastType("decrease")
     setShowForecastModal(true)
   }

@@ -51,7 +51,7 @@ export function RocketProgressBar({
   const [animation, setAnimation] = useState<"none" | "yes" | "no">("none")
   const containerRef = useRef<HTMLDivElement>(null)
   const startX = useRef(0)
-  const currentX = useRef(0)
+  const dragXRef = useRef(0)
 
   useEffect(() => {
     const style = document.createElement("style")
@@ -77,11 +77,10 @@ export function RocketProgressBar({
   }, [])
 
   const handleStart = (clientX: number) => {
-    console.log("[v0] Starting drag at:", clientX)
     setIsDragging(true)
     startX.current = clientX
-    currentX.current = clientX
     setDragX(0)
+    dragXRef.current = 0
     setAnimation("none")
   }
 
@@ -93,25 +92,23 @@ export function RocketProgressBar({
     const clampedDelta = Math.max(-maxDrag, Math.min(maxDrag, deltaX))
 
     setDragX(clampedDelta)
-    currentX.current = clientX
+    dragXRef.current = clampedDelta
   }
 
   const handleEnd = () => {
     if (!isDragging) return
 
     const threshold = 90
-    console.log("[v0] Drag ended with dragX:", dragX, "threshold:", threshold)
+    const currentDragX = dragXRef.current
 
-    if (dragX < -threshold) {
-      console.log("[v0] Triggering YES animation and confetti")
+    if (currentDragX < -threshold) {
       setAnimation("yes")
       setTimeout(() => triggerConfetti(), 500)
       setTimeout(() => {
         onYesSwipe()
         resetRocket()
       }, 1000)
-    } else if (dragX > threshold) {
-      console.log("[v0] Triggering NO animation and confetti")
+    } else if (currentDragX > threshold) {
       setAnimation("no")
       setTimeout(() => triggerConfetti(), 500)
       setTimeout(() => {
@@ -119,7 +116,6 @@ export function RocketProgressBar({
         resetRocket()
       }, 1000)
     } else {
-      console.log("[v0] Resetting rocket - threshold not met")
       resetRocket()
     }
   }
@@ -127,12 +123,12 @@ export function RocketProgressBar({
   const resetRocket = () => {
     setIsDragging(false)
     setDragX(0)
+    dragXRef.current = 0
     setAnimation("none")
   }
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault()
-    console.log("[v0] Mouse down event")
     handleStart(e.clientX)
   }
 
@@ -141,13 +137,11 @@ export function RocketProgressBar({
   }
 
   const handleMouseUp = () => {
-    console.log("[v0] Mouse up event")
     handleEnd()
   }
 
   const handleTouchStart = (e: React.TouchEvent) => {
     e.preventDefault()
-    console.log("[v0] Touch start event")
     handleStart(e.touches[0].clientX)
   }
 
@@ -158,7 +152,6 @@ export function RocketProgressBar({
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     e.preventDefault()
-    console.log("[v0] Touch end event")
     handleEnd()
   }
 
@@ -190,10 +183,6 @@ export function RocketProgressBar({
     }
     return "1"
   }
-
-  useEffect(() => {
-    console.log("[v0] Animation state changed:", { animation })
-  }, [animation])
 
   return (
     <div className={cn("relative w-full h-32 flex flex-col items-center justify-center", className)} ref={containerRef}>
