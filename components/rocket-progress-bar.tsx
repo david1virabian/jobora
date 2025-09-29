@@ -12,28 +12,31 @@ interface RocketProgressBarProps {
   className?: string
 }
 
-const ConfettiParticle = ({ delay, color }: { delay: number; color: string }) => {
-  const randomX = Math.random() * 100
-  const randomDuration = 2 + Math.random() * 3
-  const randomSize = 4 + Math.random() * 8
+const triggerConfetti = () => {
+  const colors = ["#007bff", "#0056b3", "#28a745", "#ffc107", "#dc3545", "#6f42c1"]
+  const confettiCount = 100
 
-  return (
-    <div
-      className="absolute animate-bounce"
-      style={{
-        left: `${randomX}%`,
-        top: "-10px",
-        width: `${randomSize}px`,
-        height: `${randomSize}px`,
-        backgroundColor: color,
-        borderRadius: Math.random() > 0.5 ? "50%" : "0%",
-        animationDelay: `${delay}s`,
-        animationDuration: `${randomDuration}s`,
-        animationIterationCount: "infinite",
-        transform: "rotate(45deg)",
-      }}
-    />
-  )
+  for (let i = 0; i < confettiCount; i++) {
+    const confetti = document.createElement("div")
+    confetti.style.position = "fixed"
+    confetti.style.left = Math.random() * 100 + "vw"
+    confetti.style.top = "-10px"
+    confetti.style.width = "10px"
+    confetti.style.height = "10px"
+    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)]
+    confetti.style.borderRadius = "50%"
+    confetti.style.pointerEvents = "none"
+    confetti.style.zIndex = "9999"
+    confetti.style.animation = `confetti-fall ${2 + Math.random() * 3}s linear forwards`
+
+    document.body.appendChild(confetti)
+
+    setTimeout(() => {
+      if (confetti.parentNode) {
+        confetti.parentNode.removeChild(confetti)
+      }
+    }, 5000)
+  }
 }
 
 export function RocketProgressBar({
@@ -46,18 +49,40 @@ export function RocketProgressBar({
   const [isDragging, setIsDragging] = useState(false)
   const [dragX, setDragX] = useState(0)
   const [animation, setAnimation] = useState<"none" | "yes" | "no">("none")
-  const [showConfetti, setShowConfetti] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const startX = useRef(0)
   const currentX = useRef(0)
 
+  useEffect(() => {
+    const style = document.createElement("style")
+    style.textContent = `
+      @keyframes confetti-fall {
+        0% {
+          transform: translateY(-10px) rotate(0deg);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(100vh) rotate(720deg);
+          opacity: 0;
+        }
+      }
+    `
+    document.head.appendChild(style)
+
+    return () => {
+      if (style.parentNode) {
+        style.parentNode.removeChild(style)
+      }
+    }
+  }, [])
+
   const handleStart = (clientX: number) => {
+    console.log("[v0] Starting drag at:", clientX)
     setIsDragging(true)
     startX.current = clientX
     currentX.current = clientX
     setDragX(0)
     setAnimation("none")
-    setShowConfetti(false)
   }
 
   const handleMove = (clientX: number) => {
@@ -75,22 +100,26 @@ export function RocketProgressBar({
     if (!isDragging) return
 
     const threshold = 90
+    console.log("[v0] Drag ended with dragX:", dragX, "threshold:", threshold)
 
     if (dragX < -threshold) {
+      console.log("[v0] Triggering YES animation and confetti")
       setAnimation("yes")
-      setShowConfetti(true)
+      setTimeout(() => triggerConfetti(), 500)
       setTimeout(() => {
         onYesSwipe()
         resetRocket()
       }, 1000)
     } else if (dragX > threshold) {
+      console.log("[v0] Triggering NO animation and confetti")
       setAnimation("no")
-      setShowConfetti(true)
+      setTimeout(() => triggerConfetti(), 500)
       setTimeout(() => {
         onNoSwipe()
         resetRocket()
       }, 1000)
     } else {
+      console.log("[v0] Resetting rocket - threshold not met")
       resetRocket()
     }
   }
@@ -99,11 +128,11 @@ export function RocketProgressBar({
     setIsDragging(false)
     setDragX(0)
     setAnimation("none")
-    setTimeout(() => setShowConfetti(false), 2000)
   }
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault()
+    console.log("[v0] Mouse down event")
     handleStart(e.clientX)
   }
 
@@ -112,11 +141,13 @@ export function RocketProgressBar({
   }
 
   const handleMouseUp = () => {
+    console.log("[v0] Mouse up event")
     handleEnd()
   }
 
   const handleTouchStart = (e: React.TouchEvent) => {
     e.preventDefault()
+    console.log("[v0] Touch start event")
     handleStart(e.touches[0].clientX)
   }
 
@@ -127,6 +158,7 @@ export function RocketProgressBar({
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     e.preventDefault()
+    console.log("[v0] Touch end event")
     handleEnd()
   }
 
@@ -159,41 +191,12 @@ export function RocketProgressBar({
     return "1"
   }
 
+  useEffect(() => {
+    console.log("[v0] Animation state changed:", { animation })
+  }, [animation])
+
   return (
     <div className={cn("relative w-full h-32 flex flex-col items-center justify-center", className)} ref={containerRef}>
-      {showConfetti && (
-        <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-          {Array.from({ length: 50 }).map((_, i) => (
-            <ConfettiParticle
-              key={i}
-              delay={i * 0.1}
-              color={
-                animation === "yes"
-                  ? ["#10B981", "#34D399", "#6EE7B7", "#A7F3D0"][i % 4]
-                  : ["#EF4444", "#F87171", "#FCA5A5", "#FECACA"][i % 4]
-              }
-            />
-          ))}
-          {/* Additional confetti particles for more density */}
-          {Array.from({ length: 30 }).map((_, i) => (
-            <div
-              key={`extra-${i}`}
-              className="absolute animate-pulse"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                width: "6px",
-                height: "6px",
-                backgroundColor: animation === "yes" ? "#10B981" : "#EF4444",
-                borderRadius: "50%",
-                animationDelay: `${i * 0.05}s`,
-                animationDuration: "1s",
-              }}
-            />
-          ))}
-        </div>
-      )}
-
       <div className="relative w-96 h-2 bg-gray-200 rounded-full mb-8">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-green-400 via-yellow-400 via-orange-400 to-red-400 rounded-full" />
 
