@@ -1,90 +1,102 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+/* Fixed dark mode selector to work with html.dark */
+@custom-variant dark (&:is(.dark, .dark *));
 
 :root {
-  /* Updated color tokens to match design brief for enhanced visual effects */
-  --background: oklch(1 0 0); /* Pure white */
-  --foreground: oklch(0.35 0 0); /* Darker text for better contrast */
-  --card: oklch(0.98 0 0); /* Slightly off-white for cards */
-  --card-foreground: oklch(0.25 0 0); /* Dark text for cards */
-  --popover: oklch(0.99 0.01 0); /* Subtle warm white for popovers */
-  --popover-foreground: oklch(0.25 0 0); /* Dark text for popovers */
-  --primary: oklch(0.55 0.18 280); /* Rich purple primary */
-  --primary-foreground: oklch(1 0 0); /* White text on primary */
-  --secondary: oklch(0.65 0.15 160); /* Teal secondary */
-  --secondary-foreground: oklch(1 0 0); /* White text on secondary */
-  --muted: oklch(0.96 0.01 0); /* Very light muted background */
-  --muted-foreground: oklch(0.5 0 0); /* Medium gray for muted text */
-  --accent: oklch(0.6 0.2 160); /* Vibrant teal accent */
-  --accent-foreground: oklch(1 0 0); /* White text on accent */
-  --destructive: oklch(0.6 0.2 15); /* Warm red for errors */
-  --destructive-foreground: oklch(1 0 0); /* White text on destructive */
-  --border: oklch(0.9 0.01 0); /* Subtle warm border */
-  --input: oklch(0.97 0.01 0); /* Light input background */
-  --ring: oklch(0.55 0.18 280 / 0.4); /* Purple focus ring with transparency */
-  /* Enhanced chart colors with better saturation for visual appeal */
-  --chart-1: oklch(0.65 0.25 250); /* Vibrant blue matching reference */
-  --chart-2: oklch(0.65 0.22 300); /* Bright purple matching reference */
-  --chart-3: oklch(0.68 0.2 140); /* Fresh green matching reference */
-  --chart-4: oklch(0.68 0.18 35); /* Warm orange matching reference */
-  --chart-5: oklch(0.6 0.15 320); /* Soft pink */
-  --radius: 0.75rem; /* Rounded corners for modern look */
-  --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.25 0 0);
-  --sidebar-primary: oklch(0.55 0.18 280);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.6 0.2 160);
-  --sidebar-accent-foreground: oklch(1 0 0);
-  --sidebar-border: oklch(0.9 0.01 0);
-  --sidebar-ring: oklch(0.55 0.18 280 / 0.4);
+  /* Clean professional design inspired by Predictr pitch deck */
+  --background: #ffffff; /* Pure white main background */
+  --foreground: #1f2937; /* Dark gray for main text */
+  --card: #f0f4ff; /* Light blue card backgrounds */
+  --card-foreground: #1f2937; /* Dark text on cards */
+  --popover: #ffffff; /* White popover background */
+  --popover-foreground: #1f2937; /* Dark text on popovers */
+  --primary: #007bff; /* Vibrant blue for primary actions */
+  --primary-foreground: #ffffff; /* White text on primary elements */
+  --secondary: #b0c4de; /* Light steel blue for secondary elements */
+  --secondary-foreground: #0056b3; /* Darker blue text on secondary */
+  --muted: #f0f4ff; /* Light blue muted backgrounds */
+  --muted-foreground: #6b7280; /* Gray muted text */
+  --accent: #0056b3; /* Darker blue for accents and interactive elements */
+  --accent-foreground: #ffffff; /* White text on accent elements */
+  --success: #10b981; /* Green for success states */
+  --success-foreground: #ffffff; /* White text on success */
+  --warning: #f59e0b; /* Orange for warnings */
+  --warning-foreground: #ffffff; /* White text on warnings */
+  --destructive: #3b82f6; /* Blue for destructive actions instead of red */
+  --destructive-foreground: #ffffff; /* White text on destructive elements */
+  --border: #d1d5db; /* Light gray borders */
+  --input: #ffffff; /* White input backgrounds */
+  --ring: rgba(0, 123, 255, 0.5); /* Blue focus ring */
+  --chart-1: #007bff; /* Primary chart color - blue */
+  --chart-2: #b0c4de; /* Secondary chart color - light steel blue */
+  --chart-3: #0056b3; /* Accent chart color - dark blue */
+  --chart-4: #f0f4ff; /* Muted chart color - light blue */
+  --chart-5: #6b7280; /* Gray chart color */
+  --radius: 0.5rem; /* Clean corner rounding */
+  --sidebar: #f0f4ff; /* Light blue sidebar background */
+  --sidebar-foreground: #1f2937; /* Dark sidebar text */
+  --sidebar-primary: #007bff; /* Blue sidebar primary */
+  --sidebar-primary-foreground: #ffffff; /* White sidebar primary text */
+  --sidebar-accent: #b0c4de; /* Light steel blue sidebar accent */
+  --sidebar-accent-foreground: #0056b3; /* Dark blue sidebar accent text */
+  --sidebar-border: #d1d5db; /* Light gray sidebar border */
+  --sidebar-ring: rgba(0, 123, 255, 0.5); /* Blue sidebar focus ring */
+
+  /* Adding soft colors for YES/NO ratios */
+  --yes-soft: #3b82f6; /* Changed YES color to blue as requested */
+  --no-soft: #8b5cf6; /* Changed NO color to violet as requested */
 }
 
-.glass-effect {
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
+/* Updated dark theme selector to work with html.dark */
+:root.dark {
+  /* Dark theme maintaining professional blue aesthetic */
+  --background: #0f172a; /* Dark navy background */
+  --foreground: #f8fafc; /* Light text */
+  --card: #1e293b; /* Dark blue-gray cards */
+  --card-foreground: #f8fafc; /* Light text on cards */
+  --popover: #1e293b; /* Dark popover background */
+  --popover-foreground: #f8fafc; /* Light popover text */
+  --primary: #007bff; /* Vibrant blue primary */
+  --primary-foreground: #ffffff; /* White primary text */
+  --secondary: #475569; /* Dark gray secondary */
+  --secondary-foreground: #b0c4de; /* Light blue secondary text */
+  --muted: #334155; /* Dark muted backgrounds */
+  --muted-foreground: #94a3b8; /* Light gray muted text */
+  --accent: #0056b3; /* Dark blue accent */
+  --accent-foreground: #ffffff; /* White accent text */
+  --success: #10b981; /* Green success */
+  --success-foreground: #ffffff; /* White success text */
+  --warning: #f59e0b; /* Orange warning */
+  --warning-foreground: #ffffff; /* White warning text */
+  --destructive: #93c5fd; /* Much lighter blue for better visibility in dark mode */
+  --destructive-foreground: #1e293b; /* Dark text for better contrast on light blue background */
+  --border: #334155; /* Dark border */
+  --input: #1e293b; /* Dark input background */
+  --ring: rgba(0, 123, 255, 0.5); /* Blue focus ring */
+  --chart-1: #007bff; /* Blue chart color */
+  --chart-2: #b0c4de; /* Light blue chart color */
+  --chart-3: #0056b3; /* Dark blue chart color */
+  --chart-4: #475569; /* Gray chart color */
+  --chart-5: #94a3b8; /* Light gray chart color */
+  --sidebar: #1e293b; /* Dark sidebar */
+  --sidebar-foreground: #f8fafc; /* Light sidebar text */
+  --sidebar-primary: #007bff; /* Blue sidebar primary */
+  --sidebar-primary-foreground: #ffffff; /* White sidebar primary text */
+  --sidebar-accent: #475569; /* Gray sidebar accent */
+  --sidebar-accent-foreground: #b0c4de; /* Light blue sidebar accent text */
+  --sidebar-border: #334155; /* Dark sidebar border */
+  --sidebar-ring: rgba(0, 123, 255, 0.5); /* Blue sidebar focus ring */
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  /* Adding soft colors for YES/NO ratios in dark theme */
+  --yes-soft: #60a5fa; /* Changed YES color to light blue for dark mode */
+  --no-soft: #a78bfa; /* Changed NO color to light violet for dark mode */
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-space-mono);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -99,6 +111,10 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
@@ -121,6 +137,10 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Adding soft YES/NO colors to theme */
+  --color-yes-soft: var(--yes-soft);
+  --color-no-soft: var(--no-soft);
 }
 
 @layer base {
@@ -129,91 +149,63 @@
   }
   body {
     @apply bg-background text-foreground;
-    /* Added subtle gradient background for depth */
-    background: linear-gradient(135deg, oklch(1 0 0) 0%, oklch(0.98 0.01 280) 100%);
-    min-height: 100vh;
   }
 }
 
-@layer components {
-  /* Enhanced status badge classes with maximum specificity to override any parent styling */
-  .status-badge-green,
-  .status-badge-green * {
-    background-color: #10b981 !important;
-    background-image: none !important;
-    background: #10b981 !important;
-    color: #ffffff !important;
-    border: none !important;
-    padding: 0.25rem 0.625rem !important;
-    border-radius: 9999px !important;
-    font-size: 0.75rem !important;
-    font-weight: 700 !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
-    backdrop-filter: none !important;
-    position: relative !important;
-    z-index: 10 !important;
+/* Professional hover and interaction effects */
+@layer utilities {
+  .professional-hover {
+    transition: all 0.2s ease-in-out;
   }
 
-  .status-badge-purple,
-  .status-badge-purple * {
-    background-color: #8b5cf6 !important;
-    background-image: none !important;
-    background: #8b5cf6 !important;
-    color: #ffffff !important;
-    border: none !important;
-    padding: 0.25rem 0.625rem !important;
-    border-radius: 9999px !important;
-    font-size: 0.75rem !important;
-    font-weight: 700 !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
-    backdrop-filter: none !important;
-    position: relative !important;
-    z-index: 10 !important;
+  .professional-hover:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
   }
 
-  .status-badge-pink,
-  .status-badge-pink * {
-    background-color: #ec4899 !important;
-    background-image: none !important;
-    background: #ec4899 !important;
-    color: #ffffff !important;
-    border: none !important;
-    padding: 0.25rem 0.625rem !important;
-    border-radius: 9999px !important;
-    font-size: 0.75rem !important;
-    font-weight: 700 !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
-    backdrop-filter: none !important;
-    position: relative !important;
-    z-index: 10 !important;
+  .professional-focus {
+    transition: all 0.2s ease-in-out;
   }
 
-  /* Additional override to ensure badges are not affected by glass effects */
-  .glass-effect .status-badge-green,
-  .glass-effect .status-badge-purple,
-  .glass-effect .status-badge-pink {
-    background: inherit !important;
-    backdrop-filter: none !important;
+  .professional-focus:focus {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 
-  .glass-effect .status-badge-green {
-    background-color: #10b981 !important;
-    background: #10b981 !important;
+  .startup-card-hover {
+    transition: all 0.3s ease-in-out;
   }
 
-  .glass-effect .status-badge-purple {
-    background-color: #8b5cf6 !important;
-    background: #8b5cf6 !important;
+  .startup-card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 123, 255, 0.1);
   }
 
-  .glass-effect .status-badge-pink {
-    background-color: #ec4899 !important;
-    background: #ec4899 !important;
+  /* Adding ticker scroll animation */
+  .animate-scroll {
+    animation: scroll 60s linear infinite;
+  }
+
+  @keyframes scroll {
+    0% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+
+  /* Improved ticker animation for smoother continuous scrolling */
+  .animate-ticker-scroll {
+    animation: ticker-scroll 152s linear infinite;
+  }
+
+  @keyframes ticker-scroll {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-33.333%);
+    }
   }
 }
