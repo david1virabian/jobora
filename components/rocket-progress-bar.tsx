@@ -3,7 +3,6 @@
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { cn } from "@/lib/utils"
-import { ForecastModal } from "./forecast-modal"
 
 interface RocketProgressBarProps {
   yesPercentage: number
@@ -11,33 +10,31 @@ interface RocketProgressBarProps {
   onYesSwipe: () => void
   onNoSwipe: () => void
   className?: string
-  startup?: any // Add startup prop for the modal
 }
 
-const ConfettiParticle = ({ delay }: { delay: number }) => (
-  <div
-    className="absolute w-2 h-2 rounded-full animate-bounce"
-    style={{
-      backgroundColor: ["#10B981", "#3B82F6", "#F59E0B", "#EF4444", "#8B5CF6"][Math.floor(Math.random() * 5)],
-      left: `${Math.random() * 100}%`,
-      animationDelay: `${delay}ms`,
-      animationDuration: "1s",
-    }}
-  />
-)
+const ConfettiParticle = ({ delay, color }: { delay: number; color: string }) => {
+  const randomX = Math.random() * 100
+  const randomDuration = 2 + Math.random() * 3
+  const randomSize = 4 + Math.random() * 8
 
-const ExplosionParticle = ({ delay }: { delay: number }) => (
-  <div
-    className="absolute w-3 h-3 rounded-full animate-ping"
-    style={{
-      backgroundColor: ["#EF4444", "#F97316", "#FBBF24"][Math.floor(Math.random() * 3)],
-      left: `${Math.random() * 100}%`,
-      top: `${Math.random() * 100}%`,
-      animationDelay: `${delay}ms`,
-      animationDuration: "0.8s",
-    }}
-  />
-)
+  return (
+    <div
+      className="absolute animate-bounce"
+      style={{
+        left: `${randomX}%`,
+        top: "-10px",
+        width: `${randomSize}px`,
+        height: `${randomSize}px`,
+        backgroundColor: color,
+        borderRadius: Math.random() > 0.5 ? "50%" : "0%",
+        animationDelay: `${delay}s`,
+        animationDuration: `${randomDuration}s`,
+        animationIterationCount: "infinite",
+        transform: "rotate(45deg)",
+      }}
+    />
+  )
+}
 
 export function RocketProgressBar({
   yesPercentage,
@@ -45,13 +42,11 @@ export function RocketProgressBar({
   onYesSwipe,
   onNoSwipe,
   className,
-  startup,
 }: RocketProgressBarProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [dragX, setDragX] = useState(0)
   const [animation, setAnimation] = useState<"none" | "yes" | "no">("none")
-  const [showDepositModal, setShowDepositModal] = useState(false)
-  const [forecastType, setForecastType] = useState<"increase" | "decrease" | null>(null)
+  const [showConfetti, setShowConfetti] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const startX = useRef(0)
   const currentX = useRef(0)
@@ -62,13 +57,14 @@ export function RocketProgressBar({
     currentX.current = clientX
     setDragX(0)
     setAnimation("none")
+    setShowConfetti(false)
   }
 
   const handleMove = (clientX: number) => {
     if (!isDragging) return
 
     const deltaX = clientX - startX.current
-    const maxDrag = 120
+    const maxDrag = 180
     const clampedDelta = Math.max(-maxDrag, Math.min(maxDrag, deltaX))
 
     setDragX(clampedDelta)
@@ -78,21 +74,19 @@ export function RocketProgressBar({
   const handleEnd = () => {
     if (!isDragging) return
 
-    const threshold = 60
+    const threshold = 90
 
     if (dragX < -threshold) {
       setAnimation("yes")
+      setShowConfetti(true)
       setTimeout(() => {
-        setForecastType("increase")
-        setShowDepositModal(true)
         onYesSwipe()
         resetRocket()
       }, 1000)
     } else if (dragX > threshold) {
       setAnimation("no")
+      setShowConfetti(true)
       setTimeout(() => {
-        setForecastType("decrease")
-        setShowDepositModal(true)
         onNoSwipe()
         resetRocket()
       }, 1000)
@@ -105,6 +99,7 @@ export function RocketProgressBar({
     setIsDragging(false)
     setDragX(0)
     setAnimation("none")
+    setTimeout(() => setShowConfetti(false), 2000)
   }
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -149,12 +144,12 @@ export function RocketProgressBar({
 
   const getRocketTransform = () => {
     if (animation === "yes") {
-      return "translateX(-150px) scale(0.6) rotate(-15deg)"
+      return "translateX(-225px) scale(0.8) rotate(-15deg)"
     }
     if (animation === "no") {
-      return "translateX(150px) scale(0.6) rotate(15deg)"
+      return "translateX(225px) scale(0.8) rotate(15deg)"
     }
-    return `translateX(${dragX}px) scale(0.8) ${dragX < 0 ? "rotate(-5deg)" : dragX > 0 ? "rotate(5deg)" : ""}`
+    return `translateX(${dragX}px) ${dragX < 0 ? "rotate(-5deg)" : dragX > 0 ? "rotate(5deg)" : ""}`
   }
 
   const getRocketOpacity = () => {
@@ -164,122 +159,115 @@ export function RocketProgressBar({
     return "1"
   }
 
-  const getProgressFill = () => {
-    const progress = (dragX + 120) / 240
-    return Math.max(0, Math.min(1, progress))
-  }
-
-  const isNearYes = dragX < -30
-  const isNearNo = dragX > 30
-
   return (
-    <>
-      <div
-        className={cn("relative w-full h-32 flex flex-col items-center justify-center", className)}
-        ref={containerRef}
-      >
-        <div className="relative w-64 h-2 bg-gray-200 rounded-full mb-8">
-          {/* Progress fill */}
-          <div
-            className="absolute top-0 left-0 h-full bg-gradient-to-r from-green-400 to-red-400 rounded-full transition-all duration-200"
-            style={{ width: `${getProgressFill() * 100}%` }}
-          />
+    <div className={cn("relative w-full h-32 flex flex-col items-center justify-center", className)} ref={containerRef}>
+      {showConfetti && (
+        <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+          {Array.from({ length: 50 }).map((_, i) => (
+            <ConfettiParticle
+              key={i}
+              delay={i * 0.1}
+              color={
+                animation === "yes"
+                  ? ["#10B981", "#34D399", "#6EE7B7", "#A7F3D0"][i % 4]
+                  : ["#EF4444", "#F87171", "#FCA5A5", "#FECACA"][i % 4]
+              }
+            />
+          ))}
+          {/* Additional confetti particles for more density */}
+          {Array.from({ length: 30 }).map((_, i) => (
+            <div
+              key={`extra-${i}`}
+              className="absolute animate-pulse"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                width: "6px",
+                height: "6px",
+                backgroundColor: animation === "yes" ? "#10B981" : "#EF4444",
+                borderRadius: "50%",
+                animationDelay: `${i * 0.05}s`,
+                animationDuration: "1s",
+              }}
+            />
+          ))}
+        </div>
+      )}
 
-          {/* YES label */}
-          <div className="absolute -top-8 left-0 text-center">
-            <div className="w-12 h-12 rounded-full bg-green-100 border-2 border-green-500 flex items-center justify-center">
-              <span className="text-xs font-bold text-green-700">{yesPercentage}%</span>
-            </div>
-            <span className="text-xs text-muted-foreground mt-1 block">Yes</span>
-          </div>
+      <div className="relative w-96 h-2 bg-gray-200 rounded-full mb-8">
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-green-400 via-yellow-400 via-orange-400 to-red-400 rounded-full" />
 
-          {/* NO label */}
-          <div className="absolute -top-8 right-0 text-center">
-            <div className="w-12 h-12 rounded-full bg-red-100 border-2 border-red-500 flex items-center justify-center">
-              <span className="text-xs font-bold text-red-700">{noPercentage}%</span>
-            </div>
-            <span className="text-xs text-muted-foreground mt-1 block">No</span>
+        {/* YES label */}
+        <div className="absolute -top-8 left-0 text-center">
+          <div className="w-12 h-12 rounded-full bg-green-100 border-2 border-green-500 flex items-center justify-center">
+            <span className="text-xs font-bold text-green-700">{yesPercentage}%</span>
           </div>
+          <span className="text-xs text-muted-foreground mt-1 block">Yes</span>
         </div>
 
-        <div
-          className={cn(
-            "absolute cursor-grab active:cursor-grabbing select-none transition-all duration-300 ease-out",
-            isDragging && "cursor-grabbing",
-            animation === "yes" && "transition-all duration-1000 ease-out",
-            animation === "no" && "transition-all duration-1000 ease-out",
-          )}
-          style={{
-            transform: getRocketTransform(),
-            opacity: getRocketOpacity(),
-            top: "50%",
-            left: "50%",
-            marginLeft: "-12px", // Adjusted for smaller rocket
-            marginTop: "-20px", // Adjusted for smaller rocket
-          }}
-          onMouseDown={handleMouseDown}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
-          <div className="relative">
-            <div className="w-6 h-10 bg-gradient-to-b from-blue-400 to-blue-600 rounded-t-full relative shadow-lg">
-              {/* Rocket tip */}
-              <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-yellow-400 rounded-full"></div>
-              {/* Rocket window */}
-              <div className="absolute top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-cyan-300 rounded-full border border-cyan-500"></div>
-              {/* Rocket fins */}
-              <div className="absolute bottom-0 -left-0.5 w-1 h-2 bg-gray-500 transform rotate-12"></div>
-              <div className="absolute bottom-0 -right-0.5 w-1 h-2 bg-gray-500 transform -rotate-12"></div>
-            </div>
-
-            {/* Rocket flames (when dragging or animating) */}
-            {(isDragging || animation !== "none") && (
-              <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2">
-                <div className="w-3 h-4 bg-gradient-to-b from-orange-400 via-red-500 to-yellow-400 rounded-b-full animate-pulse"></div>
-                <div className="absolute top-0.5 left-1/2 transform -translate-x-1/2 w-1 h-2 bg-gradient-to-b from-yellow-300 to-orange-400 rounded-b-full"></div>
-              </div>
-            )}
+        {/* NO label */}
+        <div className="absolute -top-8 right-0 text-center">
+          <div className="w-12 h-12 rounded-full bg-red-100 border-2 border-red-500 flex items-center justify-center">
+            <span className="text-xs font-bold text-red-700">{noPercentage}%</span>
           </div>
+          <span className="text-xs text-muted-foreground mt-1 block">No</span>
         </div>
-
-        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-center">
-          <p className="text-xs text-muted-foreground">Drag rocket left for YES, right for NO</p>
-        </div>
-
-        {/* Stars background */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-4 left-8 w-1 h-1 bg-yellow-300 rounded-full animate-pulse"></div>
-          <div className="absolute top-12 right-12 w-1 h-1 bg-yellow-300 rounded-full animate-pulse delay-300"></div>
-          <div className="absolute top-20 left-16 w-1 h-1 bg-yellow-300 rounded-full animate-pulse delay-700"></div>
-          <div className="absolute bottom-16 right-8 w-1 h-1 bg-yellow-300 rounded-full animate-pulse delay-500"></div>
-        </div>
-
-        {isNearYes && (
-          <div className="absolute inset-0 pointer-events-none">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <ConfettiParticle key={i} delay={i * 100} />
-            ))}
-          </div>
-        )}
-
-        {isNearNo && (
-          <div className="absolute inset-0 pointer-events-none">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <ExplosionParticle key={i} delay={i * 150} />
-            ))}
-          </div>
-        )}
       </div>
 
-      {startup && (
-        <ForecastModal
-          isOpen={showDepositModal}
-          onClose={() => setShowDepositModal(false)}
-          startup={startup}
-          forecastType={forecastType}
-        />
-      )}
-    </>
+      <div
+        className={cn(
+          "absolute cursor-grab active:cursor-grabbing select-none transition-all duration-300 ease-out",
+          isDragging && "cursor-grabbing",
+          animation === "yes" && "transition-all duration-1000 ease-out",
+          animation === "no" && "transition-all duration-1000 ease-out",
+        )}
+        style={{
+          transform: getRocketTransform(),
+          opacity: getRocketOpacity(),
+          top: "50%",
+          left: "50%",
+          marginLeft: "-16px",
+          marginTop: "-32px",
+        }}
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        <div className="relative">
+          {/* Rocket body */}
+          <div className="w-8 h-16 bg-gradient-to-b from-gray-300 to-gray-500 rounded-t-full relative">
+            {/* Rocket tip */}
+            <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-red-500 rounded-full"></div>
+            {/* Rocket windows */}
+            <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-blue-400 rounded-full border border-blue-600"></div>
+            <div className="absolute top-6 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-blue-300 rounded-full"></div>
+            {/* Rocket fins */}
+            <div className="absolute bottom-0 -left-1 w-2 h-4 bg-gray-600 transform rotate-12"></div>
+            <div className="absolute bottom-0 -right-1 w-2 h-4 bg-gray-600 transform -rotate-12"></div>
+          </div>
+
+          {/* Rocket flames (when dragging or animating) */}
+          {(isDragging || animation !== "none") && (
+            <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
+              <div className="w-4 h-6 bg-gradient-to-b from-orange-400 via-red-500 to-yellow-400 rounded-b-full animate-pulse"></div>
+              <div className="absolute top-1 left-1/2 transform -translate-x-1/2 w-2 h-4 bg-gradient-to-b from-yellow-300 to-orange-400 rounded-b-full"></div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-center">
+        <p className="text-xs text-muted-foreground">Drag rocket left for YES, right for NO</p>
+      </div>
+
+      {/* Stars background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-4 left-8 w-1 h-1 bg-yellow-300 rounded-full animate-pulse"></div>
+        <div className="absolute top-12 right-12 w-1 h-1 bg-yellow-300 rounded-full animate-pulse delay-300"></div>
+        <div className="absolute top-20 left-16 w-1 h-1 bg-yellow-300 rounded-full animate-pulse delay-700"></div>
+        <div className="absolute bottom-16 right-8 w-1 h-1 bg-yellow-300 rounded-full animate-pulse delay-500"></div>
+      </div>
+    </div>
   )
 }
