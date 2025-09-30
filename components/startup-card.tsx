@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { Startup } from "@/lib/mock-data"
 import { ForecastModal } from "./forecast-modal"
-import { RocketProgressBar } from "./rocket-progress-bar"
+import { CircularProgress } from "./circular-progress"
 
 const Star = ({ className }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -104,14 +104,14 @@ export function StartupCard({ startup, onWatchlistToggle, isWatchlisted = false 
     return `$${volume.toLocaleString()}`
   }
 
-  const handleYesClick = (e?: React.MouseEvent) => {
-    e?.stopPropagation()
+  const handleYesClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
     setForecastType("increase")
     setShowForecastModal(true)
   }
 
-  const handleNoClick = (e?: React.MouseEvent) => {
-    e?.stopPropagation()
+  const handleNoClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
     setForecastType("decrease")
     setShowForecastModal(true)
   }
@@ -186,13 +186,26 @@ export function StartupCard({ startup, onWatchlistToggle, isWatchlisted = false 
             )}
           </div>
 
-          <RocketProgressBar
-            yesPercentage={yesPercentage}
-            noPercentage={noPercentage}
-            onYesSwipe={handleYesClick}
-            onNoSwipe={handleNoClick}
-            className="mb-3 sm:mb-4"
-          />
+          <div className="flex justify-center items-center gap-4 sm:gap-6 mb-3 sm:mb-4 py-2">
+            <div className="cursor-pointer hover:scale-105 transition-transform" onClick={handleYesClick}>
+              <CircularProgress
+                percentage={yesPercentage}
+                label="Yes"
+                color="#22c55e"
+                size={55}
+                className="sm:w-[60px] sm:h-[60px]"
+              />
+            </div>
+            <div className="cursor-pointer hover:scale-105 transition-transform" onClick={handleNoClick}>
+              <CircularProgress
+                percentage={noPercentage}
+                label="No"
+                color="#ef4444"
+                size={55}
+                className="sm:w-[60px] sm:h-[60px]"
+              />
+            </div>
+          </div>
 
           <div className="space-y-3 mb-4 flex-1">{/* Content area for future use */}</div>
 
